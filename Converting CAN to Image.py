@@ -48,19 +48,27 @@ def convert_to_can_data_to_image(can):
     c2 = one_hot_vector(can[1])
     c3 = one_hot_vector(can[2])
 
-    image_can = np.array([c1,c2,c3])
+    image_can = np.array([c1, c2, c3])
     return image_can
 
 
 # test this code to check working well
 if __name__ == "__main__":
-    '''load normal_run_data.txt'''
-    can_feature = ['Timestamp','blank','ID','zero','DLC','Data']
-    data_for_test = pd.read_csv('dataset/Training set/normal_run_data.txt',sep='    ', engine='python', encoding='cp949',header=None, names=can_feature)
-    df = data_for_test['ID']
+    """load normal_run_data.txt"""
+    can_feature = ["Timestamp", "blank", "ID", "zero", "DLC", "Data"]
+    data_for_test = pd.read_csv(
+        "dataset/Training set/normal_run_data.txt",
+        sep="    ",
+        engine="python",
+        encoding="cp949",
+        header=None,
+        names=can_feature,
+    )
+    df = data_for_test["ID"]
     df = df.drop(df.index[988871])  # drop None index
 
-    for i in range(len(df)):        # extract needed part
+    for i in range(len(df)):  # extract needed part
         df.at[i] = df.at[i][5:8]
     print(df.head())
 
+''' I have to add a function to make can images '''
