@@ -4,44 +4,45 @@ import pandas as pd
 
 def one_hot_vector(c):
     # convert element of can_data to one hot vector to select can image position
-    #        order: 1  2  3  4  5  6  7  8  9  0  a  b  c  d  e  f
+    # can element is white(255) and else is black(0)
+    #    can order: 1  2  3  4  5  6  7  8  9  0  a  b  c  d  e  f
     ohv = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     if c == "1":
-        ohv[0] = 1
+        ohv[0] = 255
     elif c == "2":
-        ohv[1] = 1
+        ohv[1] = 255
     elif c == "3":
-        ohv[2] = 1
+        ohv[2] = 255
     elif c == "4":
-        ohv[3] = 1
+        ohv[3] = 255
     elif c == "5":
-        ohv[4] = 1
+        ohv[4] = 255
     elif c == "6":
-        ohv[5] = 1
+        ohv[5] = 255
     elif c == "7":
-        ohv[6] = 1
+        ohv[6] = 255
     elif c == "8":
-        ohv[7] = 1
+        ohv[7] = 255
     elif c == "9":
-        ohv[8] = 1
+        ohv[8] = 255
     elif c == "0":
-        ohv[9] = 1
+        ohv[9] = 255
     elif c == "a":
-        ohv[10] = 1
+        ohv[10] = 255
     elif c == "b":
-        ohv[11] = 1
+        ohv[11] = 255
     elif c == "c":
-        ohv[12] = 1
+        ohv[12] = 255
     elif c == "d":
-        ohv[13] = 1
+        ohv[13] = 255
     elif c == "e":
-        ohv[14] = 1
+        ohv[14] = 255
     elif c == "f":
-        ohv[15] = 1
+        ohv[15] = 255
     return ohv
 
 
-def convert_to_can_data_to_image(can):
+def convert_to_can_data_to_one_hot_vector(can):
     # convert can_data to image
 
     c1 = one_hot_vector(can[0])
@@ -52,7 +53,19 @@ def convert_to_can_data_to_image(can):
     return image_can
 
 
+def make_can_image(data):
+    can_image = np.zeros((2,16))
+    # set size of image to 16 X ( 3 * 64 )
+    # colum is Hexadecimal presentation from CAN ID value
+    # row is  3 (CAN ID length) * 64 (optimal row size in reference paper)
+    for i in range(0, len(data), 64):
+        add_can = convert_to_can_data_to_one_hot_vector(data.iloc[i][0])
+        can_image = np.vstack([can_image,add_can])
+    return can_image
+
+
 # test this code to check working well
+
 if __name__ == "__main__":
     """load normal_run_data.txt"""
     can_feature = ["Timestamp", "blank", "ID", "zero", "DLC", "Data"]
@@ -69,6 +82,5 @@ if __name__ == "__main__":
 
     for i in range(len(df)):  # extract needed part
         df.at[i] = df.at[i][5:8]
-    print(df.head())
 
-''' I have to add a function to make can images '''
+""" I have to add a function to make can images """
