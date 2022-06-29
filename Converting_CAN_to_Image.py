@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from PIL import Image
 
 
 def one_hot_vector(c):
@@ -54,14 +55,24 @@ def convert_to_can_data_to_one_hot_vector(can):
 
 
 def make_can_image(data):
-    can_image = np.zeros((2,16))
+    can_image = np.zeros((1, 16))
     # set size of image to 16 X ( 3 * 64 )
     # colum is Hexadecimal presentation from CAN ID value
     # row is  3 (CAN ID length) * 64 (optimal row size in reference paper)
-    for i in range(0, len(data), 64):
-        add_can = convert_to_can_data_to_one_hot_vector(data.iloc[i][0])
-        can_image = np.vstack([can_image,add_can])
-    return can_image
+    num = 1
+    for w in range(0, len(data),64):                                   # <== I have to check this part
+        lst = data.at[w:w+64]
+        for i in range(0, len(lst)):
+            add_can = convert_to_can_data_to_one_hot_vector(lst.iloc[i][0])
+            can_image = np.vstack([can_image, add_can])
+            can_image = np.delete(can_image, (0), axis=0)
+            int_can_image = can_image.astype(int)
+
+        image = Image.fromarray(make_can_image(df))
+        image = image.convert("RGB")
+        image.save('can_img_{}.png'.format(num))
+        num+=1
+    return int_can_image
 
 
 # test this code to check working well
