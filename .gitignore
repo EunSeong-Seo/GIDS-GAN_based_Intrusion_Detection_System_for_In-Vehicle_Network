@@ -130,3 +130,6 @@ dmypy.json
 
 dataset/*
 !dataset/.gitkeep
+
+CAN_imgage_dataset/*
+!CAN_imgage_dataset/.gitkeep
