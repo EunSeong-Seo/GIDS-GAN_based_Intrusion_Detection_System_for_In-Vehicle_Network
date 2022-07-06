@@ -1,6 +1,3 @@
-# import modules
-
-# %matplotlib inline
 import argparse
 import os
 import random
@@ -18,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IPython.display import HTML
+
 
 # set a manual seed to prevent different result while every running
 
