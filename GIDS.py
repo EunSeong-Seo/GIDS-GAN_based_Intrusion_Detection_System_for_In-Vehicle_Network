@@ -26,14 +26,10 @@ torch.manual_seed(manualSeed)
 
 # set hyper parameters
 
-data_root = "./dataset/"  # dataset root
+data_root = "./CAN_image_dataset/"  # dataset root
 workers = 2  # using thread numbers
 batch_size = 128  # batch_size
-image_size = 64  # size of image
-nc = 3  # number of channel from input images
-nz = 100  # size of hidden vectors
-ngf = 64  # size of Generator feature map
-ndf = 64  # size of Discriminator feature map
+nc = 1  # number of channel from input images
 num_epochs = 20  # number of training epochs
 lr = 0.0002  # learning rate
 beta1 = 0.5  # hyperparameter for adam optimizer
@@ -41,23 +37,11 @@ ngpu = 1  # number of available gpu
 
 # CAN image preprocessing
 """## I am writing this section ##"""
-dataset = dset.ImageFolder(
-    root=data_root,
-    transform=transforms.Compose(
-        [
-            transforms.Resize(image_size),
-            transforms.CenterCrop(image_size),
-            transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-        ]
-    ),
-)
+dataset = dset.ImageFolder(root=data_root)
 dataloader = torch.utils.data.DataLoader(
-    dataset, batch_size=batch_size, shuffle=False, num_workers=workers
+    dataset, batch_size=batch_size, shuffle=True, num_workers=workers
 )
-device = torch.device("cuda:1" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
-"""## I have to know what this function do ## """
-
+device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
 
 # Generator model implement
 
@@ -80,33 +64,21 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         self.ngpu = ngpu
         self.main = nn.Sequential(
-            # input : z vector
-            nn.ConvTranspose2d(
-                in_channels=nz,
-                out_channels=ngf * 8,
-                kernel_size=4,
-                stride=1,
-                padding=0,
-                bias=False,
-            ),
-            nn.BatchNorm2d(ngf * 8),
+            # Input : N x channel noise x 1 x 1
+            nn.ConvTranspose2d(256, 512, (3, 4), stride=1, bias=False),
             nn.ReLU(True),
-            # state size. (ngf*8)*4*4
-            nn.ConvTranspose2d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf * 4),
+            # second layer
+            nn.ConvTranspose2d(512, 256, 4, stride=2, padding=1, bias=False),
             nn.ReLU(True),
-            # (ngf*4)*8*8
-            nn.ConvTranspose2d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf * 2),
+            # third layer
+            nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1, bias=False),
             nn.ReLU(True),
-            # (ngf*2)*16*16
-            nn.ConvTranspose2d(ngf * 2, ngf, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ngf),
+            # fourth layer,
+            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1, bias=False),
             nn.ReLU(True),
-            # ngf * 32 * 32
-            nn.ConvTranspose2d(ngf, nc, 4, 2, 1, bias=False),
-            nn.Tanh()
-            # nc * 64 *64
+            # Final layer
+            nn.ConvTranspose2d(64, 1, 4, stride=2, padding=1, bias=False),
+            nn.Tanh(),
         )
 
     def forward(self, input):
@@ -114,9 +86,12 @@ class Generator(nn.Module):
 
 
 netG = Generator(ngpu).to(device)
+
 if (device.type == "cuda") and (ngpu > 1):
     netG = nn.DataParallel(netG, list(range(ngpu)))
+
 netG.apply(weights_init)
+
 print(netG)
 
 
@@ -126,25 +101,13 @@ print(netG)
 class Discriminator(nn.Module):
     def __init__(self, ngpu):
         super(Discriminator, self).__init__()
-        self.ngpu = ngpu
+        self.ngpu = (ngpu,)
         self.main = nn.Sequential(
-            # input : nc * 64 * 64
-            nn.Conv2d(nc, ndf, 4, 2, 1, bias=False),
-            nn.LeakyReLU(0.2, inplace=True),
-            # ndf * 32 * 32
-            nn.Conv2d(ndf, ndf * 2, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ndf * 2),
-            nn.LeakyReLU(0.2, inplace=True),
-            # (ndf*2) * 16 *16
-            nn.Conv2d(ndf * 2, ndf * 4, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ndf * 4),
-            nn.LeakyReLU(0.2, inplace=True),
-            # (ndf*4)*8*8
-            nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(ndf * 8),
-            nn.LeakyReLU(0.2, inplace=True),
-            # (ndf*8)*4*4
-            nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
+            nn.Conv2d(1, 1, (4, 3), stride=(2, 1), padding=1, bias=False),
+            nn.ReLU(True),
+            nn.Conv2d(1, 1, (4, 3), stride=(2, 1), padding=1, bias=False),
+            nn.ReLU(True),
+            nn.Conv2d(1, 1, (16, 48), stride=1, padding=0, bias=False),
             nn.Sigmoid(),
         )
 
@@ -153,7 +116,10 @@ class Discriminator(nn.Module):
 
 
 netD = Discriminator(ngpu).to(device)
+
 if (device.type == "cuda") and (ngpu > 1):
     netD = nn.DataParallel(netD, list(range(ngpu)))
+
 netD.apply(weights_init)
+
 print(netD)
