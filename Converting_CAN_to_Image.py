@@ -84,13 +84,12 @@ def make_can_image(data):
         # convert (can_img => int type can_img => RGB can_img) to save to png file form
         int_can_image = can_image.astype(int)
         image = Image.fromarray(int_can_image)
-        image = image.convert("RGB")
 
         # save img file
-        image.save("CAN_image_dataset/Training_set/can_img_{}.png".format(can_img_num))
+        image.save("CAN_image_dataset(L)/Training_set/can_img_{}.png".format(can_img_num))
         can_img_num += 1
 
-    print("making can image complete | the number of igage : ", can_img_num)
+    print("making can image complete | the number of images : ", can_img_num)
 
 
 # test this code to check working well
