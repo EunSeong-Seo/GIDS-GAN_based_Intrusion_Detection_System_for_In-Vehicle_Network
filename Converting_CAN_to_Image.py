@@ -59,13 +59,13 @@ def convert_to_can_data_to_one_hot_vector(can):
     c2 = one_hot_vector(can[1])
     c3 = one_hot_vector(can[2])
 
-    image_can = np.array([c1, c2, c3])
+    image_can = np.concatenate((c1,c2,c3),axis=0)
     return image_can
 
 
 def make_can_image(data):
     row_size = 64
-    column_size = 16
+    column_size = 48
 
     # set size of image to 16 X ( 3 * 64 )
     # colum is Hexadecimal presentation from CAN ID value
